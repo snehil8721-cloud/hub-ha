@@ -1,15 +1,9 @@
-# StreamHub
+# StreamHub – Render deployment
 
-YouTube-style frontend that preserves the existing Google Drive video links and adds uploads to your Google Drive.
+1. Upload this folder to a GitHub repo (or use the included `render.yaml` as a Blueprint). Build: `npm install`, Start: `npm start`.
+2. In Render → Environment, set: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and (after step 4) `GOOGLE_REFRESH_TOKEN`. Optional: `GOOGLE_DRIVE_FOLDER_ID`, `UPLOAD_PASSWORD`, `DATA_DIR=/var/data` (with a persistent disk).
+3. Google Cloud Console → OAuth client → Authorized redirect URI: `https://hub-ha.onrender.com/oauth2/callback`. Make sure the Google Drive API is enabled, and set the consent screen to **In production** (in "Testing" the refresh token dies after 7 days).
+4. Visit `https://hub-ha.onrender.com/oauth2/start`, approve, copy the refresh token into `GOOGLE_REFRESH_TOKEN`, redeploy.
+5. Check `https://hub-ha.onrender.com/api/status` – both `oauthConfigured` and `driveAuthorized` should be `true`.
 
-## Setup
-1. Install Node.js.
-2. Run `npm install`.
-3. Copy `.env.example` to `.env` and fill in your Google OAuth client ID and secret. Add `http://localhost:3001/oauth2/callback` as an authorized redirect URI in the Google OAuth client settings.
-4. Start with `npm start` (the example config uses port 3001).
-5. Open `http://localhost:3001/oauth2/start` to authorize the Google account that owns the Drive storage; this grants access to stream the existing videos as well as upload new ones. Copy the new refresh token returned into `.env`. If you already authorized uploads, authorize again to grant the additional read-only permission.
-6. Restart the server and open `http://localhost:3001` (do not open `public/index.html` directly as a local file).
-
-Videos get automatic Google Drive thumbnails and persistent view counts (stored in `data/views.json`). Selecting a video opens a centered, responsive 16:9 player popup. Video playback streams through the server with byte-range support; if streaming an existing Drive video fails, StreamHub falls back to its original Google Drive preview link.
-
-For production, put the backend behind HTTPS and keep `.env` private. Do not put Google client secrets or refresh tokens in browser JavaScript.
+Uploads are streamed from temp disk to Drive (not held in RAM). Never commit secrets.
